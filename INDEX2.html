@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GamesHub — Play & Explore</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8;--glass: rgba(255,255,255,0.03)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:linear-gradient(180deg,#071026 0%, #071426 100%);color:#e6eef6;min-height:100vh}
+    header{padding:22px 24px;display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo .mark{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+    .container{max-width:1100px;margin:28px auto;padding:0 18px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+    .card{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:10px}
+    .thumb{height:160px;border-radius:8px;overflow:hidden;background:#08121a;display:flex;align-items:center;justify-content:center}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .meta{display:flex;justify-content:space-between;align-items:center}
+    .title{font-weight:700}
+    .price{padding:6px 8px;border-radius:8px;background:var(--glass);font-size:13px;color:var(--muted)}
+    .controls{display:flex;gap:10px}
+    .btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+    .btn.buy{background:linear-gradient(90deg,#06b6d4,#7c3aed);color:#041022}
+    .btn.free{background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--muted)}
+    footer{padding:18px;text-align:center;color:var(--muted);font-size:13px;margin-top:20px}
+
+    .overlay{position:fixed;inset:0;background:rgba(3,6,12,0.7);display:flex;align-items:center;justify-content:center;padding:20px;z-index:60}
+    .card-modal{width:100%;max-width:520px;background:linear-gradient(180deg,#071529,#06101a);padding:22px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 10px 40px rgba(2,6,23,0.6)}
+    .card-modal h2{margin:0 0 8px}
+    .form-row{display:flex;gap:10px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=text], input[type=tel], input[type=number]{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;font-size:14px}
+    .small{flex:1}
+    .pay-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+    .muted{color:var(--muted);font-size:13px}
+    .tx-success{background:linear-gradient(90deg,#10b981,#06b6d4);padding:12px;border-radius:10px;color:#041022;font-weight:700;text-align:center}
+
+    .piracy{position:fixed;inset:0;background:linear-gradient(180deg,#0b0712,#140416);display:flex;align-items:center;justify-content:center;padding:32px;z-index:50}
+    .piracy-card{max-width:760px;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.02));padding:32px;border-radius:14px;border:1px solid rgba(255,255,255,0.04);text-align:center}
+    .piracy h1{font-size:28px;margin:0 0 12px;color:#ffccd5}
+    .piracy p{color:var(--muted);line-height:1.5}
+
+    @media (max-width:520px){.thumb{height:120px}.form-row{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="mark">GH</div>
+      <div>
+        <div style="font-weight:700">GamesHub</div>
+        <div style="font-size:12px;color:var(--muted)">Play demos • respect creators</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" id="mainContent">
+    <section style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h2 style="margin:0">Popular Games</h2>
+      <div style="color:var(--muted);font-size:13px">Click <strong>Buy</strong> to open demo checkout — <strong>Free</strong> shows piracy notice</div>
+    </section>
+
+    <section class="grid" id="gamesGrid"></section>
+
+    <footer>This is a demo site. Don’t pirate — support developers and creators.</footer>
+  </main>
+
+  <div id="piracyOverlay" class="piracy" style="display:none">
+    <div class="piracy-card">
+      <h1>PIRATING IS ILLEGAL</h1>
+      <p>Piracy — downloading or distributing paid games, apps, or other copyrighted works without permission — is illegal and harms creators. Support developers by buying games, using official demos, or choosing free & open alternatives.</p>
+      <p style="margin-top:10px;color:var(--muted);font-size:13px">Consequences can include account bans, malware risks, and legal penalties in some countries.</p>
+      <div style="margin-top:18px"><button class="btn buy" onclick="hidePiracy()">Go back to GamesHub</button></div>
+    </div>
+  </div>
+
+  <div id="checkoutOverlay" class="overlay" style="display:none">
+    <div class="card-modal" role="dialog" aria-modal="true">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h2 id="checkoutTitle">Checkout</h2>
+        <button class="btn free" onclick="closeCheckout()">Close</button>
+      </div>
+      <div id="checkoutBody">
+        <p class="muted">Demo payment — <strong>this is fake</strong>. Do NOT enter real details. This only simulates success.</p>
+        <div style="margin-top:12px"><label>Game</label><div id="checkoutGame" style="font-weight:700"></div></div>
+        <div style="margin-top:10px"><label>Name on card</label><input id="cardName" type="text" placeholder="Your name"/></div>
+        <div style="margin-top:10px"><label>Card number</label><input id="cardNumber" type="tel" maxlength="19" placeholder="4242 4242 4242 4242"/></div>
+        <div class="form-row" style="margin-top:10px"><div class="small"><label>Expiry</label><input id="exp" type="text" placeholder="MM/YY" maxlength="5"/></div><div style="width:110px"><label>CVV</label><input id="cvv" type="tel" placeholder="123" maxlength="4"/></div></div>
+        <div class="pay-row"><div class="muted">Total: <span id="checkoutPrice" style="font-weight:700"></span></div><button class="btn buy" onclick="submitPayment()">Pay now</button></div>
+        <div id="txResult" style="margin-top:12px;display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const games = [
+      {id:1,title:'Red Dead Redemption',price:'₹999',desc:'Epic western action-adventure',img:'https://upload.wikimedia.org/wikipedia/en/b/b7/Red_Dead_Redemption.jpg'},
+      {id:2,title:'Red Dead Redemption 2',price:'₹1499',desc:'Outlaw life in a changing America',img:'https://upload.wikimedia.org/wikipedia/en/4/44/Red_Dead_Redemption_II.jpg'},
+      {id:3,title:'God of War',price:'₹1299',desc:'Mythic battles of Kratos',img:'https://upload.wikimedia.org/wikipedia/en/a/a7/God_of_War_4_cover.jpg'},
+      {id:4,title:'Call of Duty: Modern Warfare',price:'₹1199',desc:'First-person shooter',img:'https://upload.wikimedia.org/wikipedia/en/a/a3/Call_of_Duty_Modern_Warfare_%282019%29.jpg'},
+      {id:5,title:'Forza Horizon 5',price:'₹999',desc:'Open world racing adventure',img:'https://upload.wikimedia.org/wikipedia/en/a/a8/Forza_Horizon_5_cover_art.jpg'},
+      {id:6,title:'Need for Speed: Heat',price:'₹899',desc:'High-speed street racing',img:'https://upload.wikimedia.org/wikipedia/en/f/f4/Need_for_Speed_Heat_cover_art.jpg'}
+    ];
+
+    const grid = document.getElementById('gamesGrid');
+    function renderGames(){
+      grid.innerHTML = games.map(g=>`
+        <div class='card'>
+          <div class='thumb'><img src='${g.img}' alt='${g.title}' loading='lazy'></div>
+          <div class='meta'><div><div class='title'>${g.title}</div><div style='font-size:13px;color:var(--muted)'>${g.desc}</div></div><div class='price'>${g.price}</div></div>
+          <div style='display:flex;justify-content:space-between;align-items:center;margin-top:6px'>
+            <div class='controls'><button class='btn buy' onclick='openCheckout(${g.id})'>Buy</button><button class='btn free' onclick='showPiracy()'>Free</button></div>
+            <div style='font-size:12px;color:var(--muted)'>HD • 1 player</div>
+          </div>
+        </div>`).join('');
+    }
+
+    function showPiracy(){document.getElementById('piracyOverlay').style.display='flex';document.body.style.overflow='hidden';}
+    function hidePiracy(){document.getElementById('piracyOverlay').style.display='none';document.body.style.overflow='';}
+
+    let currentGame=null;
+    function openCheckout(id){
+      currentGame=games.find(x=>x.id===id);
+      document.getElementById('checkoutGame').textContent=currentGame.title;
+      document.getElementById('checkoutPrice').textContent=currentGame.price;
+      document.getElementById('txResult').style.display='none';
+      ['cardName','cardNumber','exp','cvv'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('checkoutOverlay').style.display='flex';
+      document.body.style.overflow='hidden';
+    }
+    function closeCheckout(){document.getElementById('checkoutOverlay').style.display='none';document.body.style.overflow='';}
+
+    function submitPayment(){
+      const tx=document.getElementById('txResult');
+      tx.style.display='block';
+      tx.innerHTML='<div class="tx-success">Processing payment...</div>';
+      setTimeout(()=>{
+        tx.innerHTML=`<div class='tx-success'>Payment successful</div><div style='color:var(--muted);font-size:13px;text-align:center'>Transaction ID: TXN-${Math.random().toString(36).slice(2,10).toUpperCase()}</div><div style='text-align:center;margin-top:8px'><button class='btn buy' onclick='closeCheckout()'>Done</button></div>`;
+      },1200);
+    }
+
+    document.addEventListener('input',e=>{
+      if(e.target.id==='cardNumber'){
+        let v=e.target.value.replace(/\D/g,'').slice(0,16);
+        e.target.value=v.replace(/(.{4})/g,'$1 ').trim();
+      }
+      if(e.target.id==='exp'){
+        let v=e.target.value.replace(/\D/g,'').slice(0,4);
+        if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
+        e.target.value=v;
+      }
+    });
+
+    renderGames();
+  </script>
+</body>
+</html>
